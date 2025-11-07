@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
-	"os"
 	"io"
 	"fmt"
 	"bytes"
+	"net"
 )
 
 func getLinesFromReader(f io.ReadCloser) <-chan string {
@@ -44,13 +44,20 @@ func getLinesFromReader(f io.ReadCloser) <-chan string {
 
 
 func main() {
-	f, err := os.Open("messages.txt")
+	listener, err := net.Listen("tcp", ":42069")
 	if err != nil {
 		log.Fatal("error", "error", err)
 	}
 
-	lines := getLinesFromReader(f)
-	for line := range lines {
-		fmt.Printf("read: %s\n", line)
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Fatal("error", "error", err)
+		}
+
+		for line := range getLinesFromReader(conn) {
+			fmt.Printf("read: %s\n", line)
+		}
+
 	}
 }
