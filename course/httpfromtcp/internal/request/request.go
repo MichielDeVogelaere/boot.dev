@@ -39,6 +39,7 @@ func parseRequestLine(b string) (*RequestLine, string, error) {
 	if len(httpParts) != 2 || httpParts[0] != "HTTP" || httpParts[1] != "1.1" {
 		return nil, restOfMsg, ERROR_BAD_START_LINE
 	}
+
 	rl := &RequestLine{
 		Method: parts[0],
 		RequestTarget: parts[1],
@@ -53,12 +54,17 @@ func parseRequestLine(b string) (*RequestLine, string, error) {
 func RequestFromReader(reader io.Reader) (*Request, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, errors.Join(fmt.Errorf("unable to io.ReadAll"), err)
+		return nil, errors.Join(
+			fmt.Errorf("unable to io.ReadAll"),
+			err,
+		)
 	}
 
 	str := string(data)
-
 	rl, _, err := parseRequestLine(str)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Request{
 		RequestLine: *rl,
